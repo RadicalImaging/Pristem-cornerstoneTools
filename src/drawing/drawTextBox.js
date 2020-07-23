@@ -44,7 +44,7 @@ export function textBoxWidth(context, text, padding) {
  * @param  {Object} options     Options for the textBox.
  * @returns {Object} {top, left, width, height} - Bounding box; can be used for pointNearTool
  */
-export default function(context, textLines, x, y, color, options) {
+export default function(context, textLines, x, y, color, options = {}) {
   if (Object.prototype.toString.call(textLines) !== '[object Array]') {
     textLines = [textLines];
   }
@@ -73,13 +73,18 @@ export default function(context, textLines, x, y, color, options) {
   draw(context, context => {
     context.strokeStyle = color;
 
-    // Draw the background box with padding
-    if (options && options.centering && options.centering.x === true) {
-      x -= boundingBox.width / 2;
-    }
+    if (options.paddingRatio) {
+      x -= options.paddingRatio.x * boundingBox.width;
+      y -= options.paddingRatio.y * boundingBox.height;
+    } else if (options.centering) {
+      // Draw the background box with padding
+      if (options.centering.x === true) {
+        x -= boundingBox.width / 2;
+      }
 
-    if (options && options.centering && options.centering.y === true) {
-      y -= boundingBox.height / 2;
+      if (options.centering.y === true) {
+        y -= boundingBox.height / 2;
+      }
     }
 
     boundingBox.left = x;

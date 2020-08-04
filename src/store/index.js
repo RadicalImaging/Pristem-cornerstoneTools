@@ -26,9 +26,9 @@ export const state = {
   deleteIfHandleOutsideImage: true,
   preventHandleOutsideDisplayedArea: false,
   preventHandleOutsideImage: false,
+  handleTouchOffset: { x: 0, y: -57 },
   // Cursor
   svgCursorUrl: null,
-  //
 };
 
 export const getters = {

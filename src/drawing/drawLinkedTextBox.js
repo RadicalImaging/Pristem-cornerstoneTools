@@ -41,47 +41,69 @@ export default function(
     textCoords.x += xOffset;
   }
 
+  const getBoxPixelLimits = (element, box) => {
+    const toPixel = point => cornerstone.canvasToPixel(element, point);
+    const { top, left, width, height } = box;
+    const topLeft = toPixel({ x: left, y: top });
+    const topRight = toPixel({ x: left + width, y: top });
+    const bottomLeft = toPixel({ x: left, y: top + height });
+    const bottomRight = toPixel({ x: left + width, y: top + height });
+    const points = [topLeft, topRight, bottomLeft, bottomRight];
+    const xArray = points.map(p => p.x);
+    const yArray = points.map(p => p.y);
+
+    return {
+      minX: Math.min(...xArray),
+      minY: Math.min(...yArray),
+      maxX: Math.max(...xArray),
+      maxY: Math.max(...yArray),
+    };
+  };
+
   const options = {
     centering: {
       x: false,
       y: yCenter,
     },
     translator(boundingBox) {
-      const { pixelToCanvas } = cornerstone;
-      const { width, height, left, top } = boundingBox;
+      const { minX, minY, maxX, maxY } = getBoxPixelLimits(
+        element,
+        boundingBox
+      );
       const viewport = cornerstone.getViewport(element);
       const { tlhc, brhc } = viewport.displayedArea;
-      const daTopLeft = { x: tlhc.x - 1, y: tlhc.y - 1 };
-      const { x: daLeft, y: daTop } = pixelToCanvas(element, daTopLeft);
-      const { x: daRight, y: daBottom } = pixelToCanvas(element, brhc);
-      const maxX = Math.max(daLeft, daRight);
-      const maxY = Math.max(daTop, daBottom);
-      const minX = Math.min(daLeft, daRight);
-      const minY = Math.min(daTop, daBottom);
-      const leakTop = top < minY;
-      const leakLeft = left < minX;
-      const leakBottom = top + height > maxY;
-      const leakRight = left + width > maxX;
+      const top = tlhc.y - 1;
+      const left = tlhc.x - 1;
+      const { x: right, y: bottom } = brhc;
 
-      if (leakBottom) {
-        if (maxY - minY < height) {
-          boundingBox.top = minY + (maxY - minY) / 2 - height / 2;
-        } else {
-          boundingBox.top = maxY - height;
-        }
-      } else if (leakTop) {
-        boundingBox.top = minY;
+      const leakTop = minY < top;
+      const leakLeft = minX < left;
+      const leakBottom = maxY > bottom;
+      const leakRight = maxX > right;
+
+      if (leakTop || leakLeft || leakBottom || leakRight) {
+        console.warn('>>>>LEAKED');
       }
 
-      if (leakRight) {
-        if (maxX - minX < width) {
-          boundingBox.left = minX + (maxX - minX) / 2 - width / 2;
-        } else {
-          boundingBox.left = maxX - width;
-        }
-      } else if (leakLeft) {
-        boundingBox.left = minX;
-      }
+      // if (leakBottom) {
+      //   if (maxY - minY < height) {
+      //     boundingBox.top = minY + (maxY - minY) / 2 - height / 2;
+      //   } else {
+      //     boundingBox.top = maxY - height;
+      //   }
+      // } else if (leakTop) {
+      //   boundingBox.top = minY;
+      // }
+
+      // if (leakRight) {
+      //   if (maxX - minX < width) {
+      //     boundingBox.left = minX + (maxX - minX) / 2 - width / 2;
+      //   } else {
+      //     boundingBox.left = maxX - width;
+      //   }
+      // } else if (leakLeft) {
+      //   boundingBox.left = minX;
+      // }
     },
   };
 

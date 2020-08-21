@@ -66,10 +66,15 @@ export default function(
       y: yCenter,
     },
     translator(boundingBox) {
+      const pixelTopLeft = cornerstone.canvasToPixel(element, {
+        x: boundingBox.left,
+        y: boundingBox.top,
+      });
       const { minX, minY, maxX, maxY } = getBoxPixelLimits(
         element,
         boundingBox
       );
+
       const viewport = cornerstone.getViewport(element);
       const { tlhc, brhc } = viewport.displayedArea;
       const top = tlhc.y - 1;
@@ -81,29 +86,22 @@ export default function(
       const leakBottom = maxY > bottom;
       const leakRight = maxX > right;
 
-      if (leakTop || leakLeft || leakBottom || leakRight) {
-        console.warn('>>>>LEAKED');
+      if (leakTop) {
+        pixelTopLeft.y += top - minY;
+      } else if (leakBottom) {
+        pixelTopLeft.y -= maxY - bottom;
       }
 
-      // if (leakBottom) {
-      //   if (maxY - minY < height) {
-      //     boundingBox.top = minY + (maxY - minY) / 2 - height / 2;
-      //   } else {
-      //     boundingBox.top = maxY - height;
-      //   }
-      // } else if (leakTop) {
-      //   boundingBox.top = minY;
-      // }
+      if (leakLeft) {
+        pixelTopLeft.x += left - minX;
+      } else if (leakRight) {
+        pixelTopLeft.x -= maxX - right;
+      }
 
-      // if (leakRight) {
-      //   if (maxX - minX < width) {
-      //     boundingBox.left = minX + (maxX - minX) / 2 - width / 2;
-      //   } else {
-      //     boundingBox.left = maxX - width;
-      //   }
-      // } else if (leakLeft) {
-      //   boundingBox.left = minX;
-      // }
+      const canvasTopLeft = cornerstone.pixelToCanvas(element, pixelTopLeft);
+
+      boundingBox.top = canvasTopLeft.y;
+      boundingBox.left = canvasTopLeft.x;
     },
   };
 

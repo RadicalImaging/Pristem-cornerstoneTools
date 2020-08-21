@@ -185,28 +185,9 @@ function _dragHandler(
 
   if (options.preventHandleOutsideDisplayedArea) {
     const { tlhc, brhc } = viewport.displayedArea;
-    let limitX = brhc.x;
-    let limitY = brhc.y;
 
-    if (handle === annotation.handles.textBox && handle.boundingBox) {
-      const { top, left, width, height } = handle.boundingBox;
-      const tl = external.cornerstone.canvasToPixel(element, {
-        x: left,
-        y: top,
-      });
-      const br = external.cornerstone.canvasToPixel(element, {
-        x: left + width,
-        y: top + height,
-      });
-      const pixelWidth = Math.max(tl.x, br.x) - Math.min(tl.x, br.x);
-      const pixelHeight = Math.max(tl.y, br.y) - Math.min(tl.y, br.y);
-
-      limitX -= pixelWidth;
-      limitY -= pixelHeight;
-    }
-
-    handle.x = clip(handle.x, tlhc.x - 1, limitX);
-    handle.y = clip(handle.y, tlhc.y - 1, limitY);
+    handle.x = clip(handle.x, tlhc.x - 1, brhc.x);
+    handle.y = clip(handle.y, tlhc.y - 1, brhc.y);
   } else if (options.preventHandleOutsideImage) {
     clipToBox(handle, image);
   }

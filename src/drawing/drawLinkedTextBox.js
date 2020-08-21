@@ -46,6 +46,43 @@ export default function(
       x: false,
       y: yCenter,
     },
+    translator(boundingBox) {
+      const { pixelToCanvas } = cornerstone;
+      const { width, height, left, top } = boundingBox;
+      const viewport = cornerstone.getViewport(element);
+      const { tlhc, brhc } = viewport.displayedArea;
+      const daTopLeft = { x: tlhc.x - 1, y: tlhc.y - 1 };
+      const { x: daLeft, y: daTop } = pixelToCanvas(element, daTopLeft);
+      const { x: daRight, y: daBottom } = pixelToCanvas(element, brhc);
+      const maxX = Math.max(daLeft, daRight);
+      const maxY = Math.max(daTop, daBottom);
+      const minX = Math.min(daLeft, daRight);
+      const minY = Math.min(daTop, daBottom);
+      const leakTop = top < minY;
+      const leakLeft = left < minX;
+      const leakBottom = top + height > maxY;
+      const leakRight = left + width > maxX;
+
+      if (leakBottom) {
+        if (maxY - minY < height) {
+          boundingBox.top = minY + (maxY - minY) / 2 - height / 2;
+        } else {
+          boundingBox.top = maxY - height;
+        }
+      } else if (leakTop) {
+        boundingBox.top = minY;
+      }
+
+      if (leakRight) {
+        if (maxX - minX < width) {
+          boundingBox.left = minX + (maxX - minX) / 2 - width / 2;
+        } else {
+          boundingBox.left = maxX - width;
+        }
+      } else if (leakLeft) {
+        boundingBox.left = minX;
+      }
+    },
   };
 
   // Draw the text box

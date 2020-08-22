@@ -67,7 +67,7 @@ export default function(
     },
     translator(boundingBox) {
       const { pixelToCanvas, canvasToPixel, getViewport } = cornerstone;
-      const pixelTopLeft = canvasToPixel(element, {
+      const pixelPosition = canvasToPixel(element, {
         x: boundingBox.left,
         y: boundingBox.top,
       });
@@ -76,41 +76,47 @@ export default function(
         boundingBox
       );
 
-      const viewport = getViewport(element);
-      const { tlhc, brhc } = viewport.displayedArea;
+      // Get the displayed area's top, left, bottom and right boundaries
+      const { tlhc, brhc } = getViewport(element).displayedArea;
       const top = tlhc.y - 1;
       const left = tlhc.x - 1;
-      const { x: right, y: bottom } = brhc;
+      const bottom = brhc.y;
+      const right = brhc.x;
 
-      const leakTop = minY < top;
-      const leakLeft = minX < left;
-      const leakBottom = maxY > bottom;
-      const leakRight = maxX > right;
-
+      // Reposition bounding box in the vertical axis of the displayed area
       if (bottom - top < maxY - minY) {
-        pixelTopLeft.y += top - minY; // Stick to the top boundary
-        pixelTopLeft.y += (bottom - top) / 2; // Move to the center of displayed area
-        pixelTopLeft.y -= (maxY - minY) / 2; // Translate half of the box's height
-      } else if (leakTop) {
-        pixelTopLeft.y += top - minY; // Stick to the top boundary
-      } else if (leakBottom) {
-        pixelTopLeft.y -= maxY - bottom;
+        // Box bigger than displayed area
+        pixelPosition.y += top - minY; // Stick to the top boundary
+        pixelPosition.y += (bottom - top) / 2; // Centralize in displayed area
+        pixelPosition.y -= (maxY - minY) / 2; // Subtract 1/2 box's height
+      } else if (minY < top) {
+        // Leaked displayed area's top boundary
+        pixelPosition.y += top - minY; // Stick to the top boundary
+      } else if (maxY > bottom) {
+        // Leaked displayed area's bottom boundary
+        pixelPosition.y -= maxY - bottom; // Stick to the bottom boundary
       }
 
+      // Reposition bounding box in the horiozontal axis of the displayed area
       if (right - left < maxX - minX) {
-        pixelTopLeft.x -= minX - left;
-        pixelTopLeft.x += (right - left) / 2;
-        pixelTopLeft.x -= (maxX - minX) / 2;
-      } else if (leakLeft) {
-        pixelTopLeft.x += left - minX;
-      } else if (leakRight) {
-        pixelTopLeft.x -= maxX - right;
+        // Box bigger than displayed area
+        pixelPosition.x += left - minX; // Stick to the left boundary
+        pixelPosition.x += (right - left) / 2; // Centralize in displayed area
+        pixelPosition.x -= (maxX - minX) / 2; // Subtract 1/2 box's width
+      } else if (minX < left) {
+        // Leaked displayed area's left boundary
+        pixelPosition.x += left - minX; // Stick to the left boundary
+      } else if (maxX > right) {
+        // Leaked displayed area's right boundary
+        pixelPosition.x -= maxX - right; // Stick to the right boundary
       }
 
-      const canvasTopLeft = cornerstone.pixelToCanvas(element, pixelTopLeft);
+      // Transform the bounding box coordinate system back to canvas
+      const newCanvasPosition = pixelToCanvas(element, pixelPosition);
 
-      boundingBox.top = canvasTopLeft.y;
-      boundingBox.left = canvasTopLeft.x;
+      // Update the bounding box with the new coordinates
+      boundingBox.top = newCanvasPosition.y;
+      boundingBox.left = newCanvasPosition.x;
     },
   };
 

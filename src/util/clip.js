@@ -21,7 +21,7 @@ export function clip(val, low, high) {
  *
  * @param  {Object} point The point to clip
  * @param  {Object} box   The bounding box to clip to.
- * @returns {Object}       The clipped point.
+ * @returns {void}
  */
 export function clipToBox(point, box) {
   // Clip an {x, y} point to a box of size {width, height}
@@ -29,7 +29,16 @@ export function clipToBox(point, box) {
   point.y = clip(point.y, box.top || 0, box.height);
 }
 
-const getBoxPixelLimits = (element, box) => {
+/**
+ * Returns a new bounding box of rotated text box, relative to the pixel
+ * coordinate system. It will get the coordinate of the 4 points of the rotated
+ * text box and calculate the lower and upper boundaries for `x` and `y` axes.
+ *
+ * @param {HTMLElement} element The element to manipulate pixel positioning
+ * @param {Object} box - `{ left, top, width, height }` in canvas coordinates
+ * @returns {Object} - `{ minX, minY, maxX, maxY }` boundaries of the box
+ */
+const getBoxPixelBoundaries = (element, box) => {
   const toPixel = point => external.cornerstone.canvasToPixel(element, point);
   const { top, left, width, height } = box;
   const topLeft = toPixel({ x: left, y: top });
@@ -48,22 +57,41 @@ const getBoxPixelLimits = (element, box) => {
   };
 };
 
-const clipBoxOnAxis = (point, axis, min, max, upper, lower) => {
-  // Reposition bounding box in the given axis of the displayed area
-  if (lower - upper < max - min) {
-    // Box bigger than displayed area
-    point[axis] += upper - min; // Stick to the upper boundary
-    point[axis] += (lower - upper) / 2; // Centralize in displayed area
-    point[axis] -= (max - min) / 2; // Subtract 1/2 box's height
-  } else if (min < upper) {
-    // Leaked displayed area's upper boundary
-    point[axis] += upper - min; // Stick to the upper boundary
-  } else if (max > lower) {
-    // Leaked displayed area's lower boundary
-    point[axis] -= max - lower; // Stick to the lower boundary
+/**
+ * Reposition a box point coordinates in the given axis' upper/lower limits
+ *
+ * @param {Object} point `{ x, y }` The coordinate point of the box
+ * @param {string} axis The axis to be manipulated: `x` or `y`
+ * @param {number} boxMin The box position's lower value on axis
+ * @param {number} boxMax The box position's upper value on axis
+ * @param {*} lowerLimit The lower limit of allowed box position on axis
+ * @param {*} upperLimit The upper limit of allowed box position on axis
+ * @returns {void}
+ */
+const clipBoxOnAxis = (point, axis, boxMin, boxMax, lowerLimit, upperLimit) => {
+  if (upperLimit - lowerLimit < boxMax - boxMin) {
+    // Box is bigger than allowed range, leaking both lower/upper boundaries
+    point[axis] += lowerLimit - boxMin; // Stick to the lower boundary
+    point[axis] += (upperLimit - lowerLimit) / 2; // Centralize in range
+    point[axis] -= (boxMax - boxMin) / 2; // Translate -1/2 of box's size
+  } else if (boxMin < lowerLimit) {
+    // Box leaked lower boundary
+    point[axis] += lowerLimit - boxMin; // Stick to the lower boundary
+  } else if (boxMax > upperLimit) {
+    // Box leaked upper boundary
+    point[axis] -= boxMax - upperLimit; // Stick to the upper boundary
   }
 };
 
+/**
+ * Clips a box to the viewport's displayed area
+ * @export @public @method
+ * @name clipBoxToDisplayedArea
+ *
+ * @param {HTMLElement} element The element to manipulate pixel positioning
+ * @param {Object} box - `{ left, top, width, height }` in canvas coordinates
+ * @returns {void}
+ */
 export function clipBoxToDisplayedArea(element, box) {
   const { pixelToCanvas, canvasToPixel, getViewport } = external.cornerstone;
 
@@ -74,7 +102,7 @@ export function clipBoxToDisplayedArea(element, box) {
   });
 
   // Get the rotated corners' position for the box in pixel coordinate system
-  const { minX, minY, maxX, maxY } = getBoxPixelLimits(element, box);
+  const { minX, minY, maxX, maxY } = getBoxPixelBoundaries(element, box);
 
   // Get the displayed area's top, left, bottom and right boundaries
   const { tlhc, brhc } = getViewport(element).displayedArea;

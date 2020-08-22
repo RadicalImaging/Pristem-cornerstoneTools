@@ -60,6 +60,22 @@ export default function(
     };
   };
 
+  const clipBoxOnAxis = (point, axis, min, max, upper, lower) => {
+    // Reposition bounding box in the given axis of the displayed area
+    if (lower - upper < max - min) {
+      // Box bigger than displayed area
+      point[axis] += upper - min; // Stick to the upper boundary
+      point[axis] += (lower - upper) / 2; // Centralize in displayed area
+      point[axis] -= (max - min) / 2; // Subtract 1/2 box's height
+    } else if (min < upper) {
+      // Leaked displayed area's upper boundary
+      point[axis] += upper - min; // Stick to the upper boundary
+    } else if (max > lower) {
+      // Leaked displayed area's lower boundary
+      point[axis] -= max - lower; // Stick to the lower boundary
+    }
+  };
+
   const options = {
     centering: {
       x: false,
@@ -83,33 +99,11 @@ export default function(
       const bottom = brhc.y;
       const right = brhc.x;
 
-      // Reposition bounding box in the vertical axis of the displayed area
-      if (bottom - top < maxY - minY) {
-        // Box bigger than displayed area
-        pixelPosition.y += top - minY; // Stick to the top boundary
-        pixelPosition.y += (bottom - top) / 2; // Centralize in displayed area
-        pixelPosition.y -= (maxY - minY) / 2; // Subtract 1/2 box's height
-      } else if (minY < top) {
-        // Leaked displayed area's top boundary
-        pixelPosition.y += top - minY; // Stick to the top boundary
-      } else if (maxY > bottom) {
-        // Leaked displayed area's bottom boundary
-        pixelPosition.y -= maxY - bottom; // Stick to the bottom boundary
-      }
+      // Clip the bounding box on vertical axis
+      clipBoxOnAxis(pixelPosition, 'y', minY, maxY, top, bottom);
 
-      // Reposition bounding box in the horiozontal axis of the displayed area
-      if (right - left < maxX - minX) {
-        // Box bigger than displayed area
-        pixelPosition.x += left - minX; // Stick to the left boundary
-        pixelPosition.x += (right - left) / 2; // Centralize in displayed area
-        pixelPosition.x -= (maxX - minX) / 2; // Subtract 1/2 box's width
-      } else if (minX < left) {
-        // Leaked displayed area's left boundary
-        pixelPosition.x += left - minX; // Stick to the left boundary
-      } else if (maxX > right) {
-        // Leaked displayed area's right boundary
-        pixelPosition.x -= maxX - right; // Stick to the right boundary
-      }
+      // Clip the bounding box on horizontal axis
+      clipBoxOnAxis(pixelPosition, 'x', minX, maxX, left, right);
 
       // Transform the bounding box coordinate system back to canvas
       const newCanvasPosition = pixelToCanvas(element, pixelPosition);

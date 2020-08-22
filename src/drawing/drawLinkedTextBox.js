@@ -66,7 +66,8 @@ export default function(
       y: yCenter,
     },
     translator(boundingBox) {
-      const pixelTopLeft = cornerstone.canvasToPixel(element, {
+      const { pixelToCanvas, canvasToPixel, getViewport } = cornerstone;
+      const pixelTopLeft = canvasToPixel(element, {
         x: boundingBox.left,
         y: boundingBox.top,
       });
@@ -75,7 +76,7 @@ export default function(
         boundingBox
       );
 
-      const viewport = cornerstone.getViewport(element);
+      const viewport = getViewport(element);
       const { tlhc, brhc } = viewport.displayedArea;
       const top = tlhc.y - 1;
       const left = tlhc.x - 1;
@@ -86,13 +87,21 @@ export default function(
       const leakBottom = maxY > bottom;
       const leakRight = maxX > right;
 
-      if (leakTop) {
-        pixelTopLeft.y += top - minY;
+      if (bottom - top < maxY - minY) {
+        pixelTopLeft.y += top - minY; // Stick to the top boundary
+        pixelTopLeft.y += (bottom - top) / 2; // Move to the center of displayed area
+        pixelTopLeft.y -= (maxY - minY) / 2; // Translate half of the box's height
+      } else if (leakTop) {
+        pixelTopLeft.y += top - minY; // Stick to the top boundary
       } else if (leakBottom) {
         pixelTopLeft.y -= maxY - bottom;
       }
 
-      if (leakLeft) {
+      if (right - left < maxX - minX) {
+        pixelTopLeft.x -= minX - left;
+        pixelTopLeft.x += (right - left) / 2;
+        pixelTopLeft.x -= (maxX - minX) / 2;
+      } else if (leakLeft) {
         pixelTopLeft.x += left - minX;
       } else if (leakRight) {
         pixelTopLeft.x -= maxX - right;

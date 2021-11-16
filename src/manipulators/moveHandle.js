@@ -2,6 +2,7 @@ import EVENTS from '../events.js';
 import external from '../externalModules.js';
 import anyHandlesOutsideDisplayedArea from './anyHandlesOutsideDisplayedArea.js';
 import anyHandlesOutsideImage from './anyHandlesOutsideImage.js';
+import getHandlePixelPosition from './getHandlePixelPosition.js';
 import { removeToolState } from '../stateManagement/toolState.js';
 import triggerEvent from '../util/triggerEvent.js';
 import { clip, clipToBox } from '../util/clip.js';
@@ -142,17 +143,7 @@ export default function(
   if (interactionType === 'touch' && (touchOffset.x || touchOffset.y)) {
     runAnimation.value = true;
     const enabledElement = external.cornerstone.getEnabledElement(element);
-
-    const positionWithOffset = {
-      x: evtDetail.currentPoints.page.x + touchOffset.x,
-      y: evtDetail.currentPoints.page.y + touchOffset.y,
-    };
-
-    const targetLocation = external.cornerstone.pageToPixel(
-      element,
-      positionWithOffset.x,
-      positionWithOffset.y
-    );
+    const targetLocation = getHandlePixelPosition(evtDetail, interactionType);
 
     _animate(handle, runAnimation, enabledElement, targetLocation);
   }
@@ -166,14 +157,8 @@ function _dragHandler(
   interactionType,
   evt
 ) {
-  const { viewport, image, currentPoints, element, buttons } = evt.detail;
-  const page = currentPoints.page;
-  const touchOffset = state.handleTouchOffset;
-  const targetLocation = external.cornerstone.pageToPixel(
-    element,
-    interactionType === 'touch' ? page.x + touchOffset.x : page.x,
-    interactionType === 'touch' ? page.y + touchOffset.y : page.y
-  );
+  const { image, element, buttons } = evt.detail;
+  const targetLocation = getHandlePixelPosition(evt.detail, interactionType);
 
   runAnimation.value = false;
   handle.active = true;

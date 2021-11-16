@@ -1,4 +1,4 @@
-import getDistanceThreshold from '../../../util/getDistanceThreshold.js';
+import getProximityThreshold from '../../../util/getProximityThreshold.js';
 import external from './../../../externalModules.js';
 import pointInsideBoundingBox from './../../../util/pointInsideBoundingBox.js';
 
@@ -41,7 +41,7 @@ export default function(element, data, coords, interactionType = 'mouse') {
     return true;
   }
 
-  const distanceThreshold = getDistanceThreshold(
+  const distanceThreshold = getProximityThreshold(
     interactionType,
     'Bidirectional'
   );

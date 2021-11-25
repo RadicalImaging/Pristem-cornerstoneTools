@@ -6,6 +6,7 @@ import {
   anyHandlesOutsideImage,
   anyHandlesOutsideDisplayedArea,
   getHandleNearImagePoint,
+  getHandlePixelPosition,
   handleActivator,
   moveHandle,
   moveAllHandles,
@@ -48,13 +49,14 @@ import isPointInPolygon from './util/isPointInPolygon';
 import throttle from './util/throttle';
 import { wait, waitForEnabledElementImageToLoad } from './util/wait';
 import getKeyPressData from './util/getKeyPressData';
-
+import getProximityThreshold from './util/getProximityThreshold.js';
 import drawTextBox, { textBoxWidth } from './drawing/drawTextBox.js';
 import drawArrow from './drawing/drawArrow.js';
 import drawLink from './drawing/drawLink.js';
 import drawLinkedTextBox from './drawing/drawLinkedTextBox.js';
 import drawHandles from './drawing/drawHandles.js';
 
+import getActiveTool from './util/getActiveTool';
 import getLuminance from './util/getLuminance.js';
 import getROITextBoxCoords from './util/getROITextBoxCoords';
 import copyPoints from './util/copyPoints.js';
@@ -75,8 +77,6 @@ import pointInsideBoundingBox from './util/pointInsideBoundingBox.js';
 import makeUnselectable from './util/makeUnselectable.js';
 import getRGBPixels from './util/getRGBPixels.js';
 import {
-  getDefaultSimultaneousRequests,
-  getMaxSimultaneousRequests,
   getBrowserInfo,
   isMobileDevice,
 } from './util/getMaxSimultaneousRequests.js';
@@ -103,6 +103,7 @@ export const lib = {
   'manipulators/anyHandlesOutsideDisplayedArea': anyHandlesOutsideDisplayedArea,
   'manipulators/anyHandlesOutsideImage': anyHandlesOutsideImage,
   'manipulators/getHandleNearImagePoint': getHandleNearImagePoint,
+  'manipulators/getHandlePixelPosition': getHandlePixelPosition,
   'manipulators/handleActivator': handleActivator,
   'manipulators/moveAllHandles': moveAllHandles,
   'manipulators/moveHandle': moveHandle,
@@ -134,6 +135,7 @@ export const lib = {
   'drawing/drawHandles': drawHandles,
   'drawing/textBoxWidth': textBoxWidth,
 
+  'util/getActiveTool': getActiveTool,
   'util/getLuminance': getLuminance,
   'util/getROITextBoxCoords': getROITextBoxCoords,
   'util/copyPoints': copyPoints,
@@ -164,6 +166,7 @@ export const lib = {
   'util/debounce': debounce,
   'util/deepmerge': deepmerge,
   'util/getDefault': getDefault,
+  'util/getProximityThreshold': getProximityThreshold,
   'util/getPixelSpacing': getPixelSpacing,
   'util/isEmptyObject': isEmptyObject,
   'util/isObject': isObject,

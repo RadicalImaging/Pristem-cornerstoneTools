@@ -339,8 +339,13 @@ function _calculateStats(image, element, handles, modality, pixelSpacing) {
     (pixelSpacing.colPixelSpacing || 1) *
     (roiCoordinates.height * (pixelSpacing.rowPixelSpacing || 1));
 
+  const perimeter =
+    roiCoordinates.width * 2 * (pixelSpacing.colPixelSpacing || 1) +
+    roiCoordinates.height * 2 * (pixelSpacing.rowPixelSpacing || 1);
+
   return {
     area: area || 0,
+    perimeter,
     count: roiMeanStdDev.count || 0,
     mean: roiMeanStdDev.mean || 0,
     variance: roiMeanStdDev.variance || 0,
@@ -514,7 +519,8 @@ function _createTextBoxContent(
       otherLines.push(`${meanString}${meanSuvString}`);
       otherLines.push(`${stdDevString}     ${stdDevSuvString}`);
     } else {
-      otherLines.push(`${meanString}     ${stdDevString}`);
+      otherLines.push(`${meanString}`);
+      otherLines.push(`${stdDevString}`);
     }
 
     if (showMinMax) {

@@ -65,6 +65,7 @@ import setContextToDisplayFontSize from './util/setContextToDisplayFontSize.js';
 import scrollToIndex from './util/scrollToIndex.js';
 import scroll from './util/scroll.js';
 import roundToDecimal from './util/roundToDecimal.js';
+import getMaxSimultaneousRequests from './util/getMaxSimultaneousRequests';
 import {
   projectPatientPointToImagePlane,
   imagePointToPatientPoint,
@@ -150,7 +151,6 @@ export const lib = {
   'util/pointInsideBoundingBox': pointInsideBoundingBox,
   'util/makeUnselectable': makeUnselectable,
   'util/getRGBPixels': getRGBPixels,
-  'util/getDefaultSimultaneousRequests': getDefaultSimultaneousRequests,
   'util/getDistanceThreshold': getDistanceThreshold,
   'util/getMaxSimultaneousRequests': getMaxSimultaneousRequests,
   'util/getBrowserInfo': getBrowserInfo,
